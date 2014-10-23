@@ -1,0 +1,17 @@
+{
+  "name": "screener",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Beautify applications from Google spreadsheets",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Johan Brook <johanbrook.com>",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^2.3.6",
+    "csv2json": "^1.0.0",
+    "handlebars": "^2.0.0"
+  }
+}

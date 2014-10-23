@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+var screener = require('../index')
+
+if(process.argv.length > 2) {
+  var template = process.argv[3] || 'template.html'
+  screener(process.argv[2], template)
+}
+else {
+  console.log("You must provide a path to a CSV file.")
+}
