@@ -2,15 +2,8 @@ var Handlebars = require('handlebars'),
     csv2json =   require('csv2json'),
     fs =         require('fs'),
     path =       require('path'),
-    Promise =    require('bluebird')
-
-Promise.promisifyAll(fs)
-
-var writeToJSON = function(pathToCSV, name, cb) {
-  return fs.createReadStream(pathToCSV)
-    .pipe(csv2json())
-    .pipe(fs.createWriteStream(name).on('finish', cb))
-}
+    json =       require('json-stream'),
+    _ =          require('highland')
 
 var transformData = function(json) {
   var rename = function(key, newKey) {
@@ -40,22 +33,23 @@ module.exports = function(input, templatePath) {
   var template = Handlebars.compile(fs.readFileSync(templatePath, 'utf8')),
       output = path.basename(input).split('.')[0] + '.html'
 
-  writeToJSON(input, 'data.json', function(path) {
-    fs.readFileAsync('data.json', 'utf8')
-      .then(JSON.parse)
-      .then(function(json) {
-        return json.map(transformData)
-      })
-      .then(template)
-      .then(function(html) {
-        return fs.writeFileAsync(output, html)
-      })
-      .catch(function(err) {
-        console.error('Something went wrong.')
-        console.error(err)
-      })
-      .done(function() {
-        console.log('Done! Result is in '+output)
-      })
+  var readFile = _.wrapCallback(fs.readFile)
+
+  console.log("Reading from " + input)
+
+  var jsonStream = readFile(input, 'utf8')
+    .through(csv2json())
+    .through(json())
+    .map(transformData)
+    .collect()
+
+  jsonStream.observe().apply(function(applications) {
+    console.log('Received ' + applications.length + ' applications')
   })
+
+  jsonStream.map(template)
+    .pipe(fs.createWriteStream(output))
+    .on('finish', function() {
+      console.log('Wrote to ' + output)
+    })
 }

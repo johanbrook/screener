@@ -10,8 +10,9 @@
   "author": "Johan Brook <johanbrook.com>",
   "license": "MIT",
   "dependencies": {
-    "bluebird": "^2.3.6",
     "csv2json": "^1.0.0",
-    "handlebars": "^2.0.0"
+    "handlebars": "^2.0.0",
+    "highland": "^2.0.0",
+    "json-stream": "^0.2.2"
   }
 }
