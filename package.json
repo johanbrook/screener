@@ -10,9 +10,8 @@
   "author": "Johan Brook <johanbrook.com>",
   "license": "MIT",
   "dependencies": {
-    "csv2json": "^1.0.0",
+    "csv-parser": "^1.4.6",
     "handlebars": "^2.0.0",
-    "highland": "^2.0.0",
-    "json-stream": "^0.2.2"
+    "highland": "^2.0.0"
   }
 }

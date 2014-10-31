@@ -1,9 +1,20 @@
 var Handlebars = require('handlebars'),
-    csv2json =   require('csv2json'),
     fs =         require('fs'),
     path =       require('path'),
-    json =       require('json-stream'),
+    csv =        require('csv-parser'),
     _ =          require('highland')
+
+var log = function(msg) {
+  return function(arg) {
+    if(msg.indexOf('%l') && arg && arg.length) {
+      console.log('   ~ ' + msg.replace('%l', arg.length))
+    }
+    else {
+      console.log('   ~ ' + msg)
+    }
+    return arg
+  }
+}
 
 var transformData = function(json) {
   var rename = function(key, newKey) {
@@ -35,21 +46,15 @@ module.exports = function(input, templatePath) {
 
   var readFile = _.wrapCallback(fs.readFile)
 
-  console.log("Reading from " + input)
+  log("Reading from " + input)()
 
-  var jsonStream = readFile(input, 'utf8')
-    .through(csv2json())
-    .through(json())
+  var jsonStream = readFile(input)
+    .through(csv())
     .map(transformData)
     .collect()
-
-  jsonStream.observe().apply(function(applications) {
-    console.log('Received ' + applications.length + ' applications')
-  })
+    .map(log('Read %l applications in total'))
 
   jsonStream.map(template)
     .pipe(fs.createWriteStream(output))
-    .on('finish', function() {
-      console.log('Wrote to ' + output)
-    })
+    .on('finish', log('Wrote to ' + output))
 }
