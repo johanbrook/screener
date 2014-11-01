@@ -12,6 +12,10 @@
   "dependencies": {
     "csv-parser": "^1.4.6",
     "handlebars": "^2.0.0",
-    "highland": "^2.0.0"
+    "highland": "^2.0.0",
+    "html-linkify": "^1.2.0"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.9"
   }
 }

@@ -3,21 +3,280 @@
   <head>
     <title>Screener Tool for Spotify Street Team</title>
     <meta charset="utf-8">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,600,700,300' rel='stylesheet' type='text/css'>
+
+    <script>
+
+      Collection = function(opts) {
+        if(!opts) throw new Error('Please provide options')
+
+        var Status = { YES: 'yes', MAYBE: 'maybe', NO: 'no' }
+
+        // Backing store
+        var docs = []
+
+        var countAll = function() {
+          return docs.reduce(function(res, doc) {
+            res.yes += doc.status === Status.YES ? 1 : 0
+            res.maybe += doc.status === Status.MAYBE ? 1 : 0
+            res.no += doc.status === Status.NO ? 1 : 0
+
+            return res
+          }, { yes: 0, maybe: 0, no: 0 })
+        }
+
+        var recalculate = function() {
+          var counts = countAll()
+
+          Object.keys(opts.elements).forEach(function(key) {
+            opts.elements[key].innerHTML = counts[key]
+          })
+        }
+
+        var find = function(key) {
+          for(var i = 0; i < docs.length; i++) {
+            if(docs[i].key === key) {
+              return docs[i]
+            }
+          }
+          return false
+        }
+
+        var add = function(key, status) {
+          docs.push({ key: key, status: status || Status.YES })
+          return { key: key, status: status }
+        }
+
+        var update = function(key, status) {
+          console.log("Updating "+key+" with '" + status + "'")
+          var doc = find(key)
+          if(!doc) {
+            doc = add(key, status)
+          }
+          doc.status = status
+          recalculate()
+
+          return doc
+        }
+
+        return {
+          update: update
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+
+        var people = Collection({
+          elements: {
+            yes: document.getElementById('yes'),
+            maybe: document.getElementById('maybe'),
+            no: document.getElementById('no')
+          }
+        })
+
+        function addChoice(evt) {
+          evt.preventDefault()
+          var article = evt.target.parentNode.parentNode,
+              key = article.getAttribute('data-key'),
+              status = evt.target.getAttribute('data-choice')
+
+          key && people.update(key, status);
+
+          [].slice.call(evt.target.parentNode.children).forEach(function(nod) {
+            nod.classList.remove('active') // Clear old
+          })
+          evt.target.classList.add('active')   // Set new
+        }
+
+
+        var choices = document.querySelectorAll('a.vote');
+        [].slice.call(choices).forEach(function(link) {
+          link.addEventListener('click', addChoice, false)
+        })
+      })
+
+    </script>
+
+    <style media="screen">
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Open Sans', sans-serif;
+        margin: 1rem 5%;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      [role="banner"] {
+        background-color: rgba(255,255,255, .95);
+        position: fixed;
+        padding: 2rem 6%;
+        top: 0;
+        left: 0;
+        right: 0;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      [role="banner"] h1 {
+        margin: 0;
+      }
+
+      [role="main"] {
+        margin-top: 8rem;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+
+      a {
+        font-weight: 600;
+        color: #666;
+      }
+
+      #counter {
+        border: 2px solid #ddd;
+        border-radius: 5px;
+        font-weight: 600;
+        font-size: 1.5rem;
+        background-color: #fff;
+      }
+
+      #counter #yes { color: green; }
+      #counter #maybe { color: orange; }
+      #counter #no { color: red; }
+
+      #counter span {
+        display: inline-block;
+        padding: 3px .7em;
+        text-align: center;
+      }
+      #counter span:not(:last-child) {
+        border-right: 2px solid #ddd;
+      }
+
+      .controls {
+        display: table;
+        border-radius: 5px;
+        width: 100%;
+        text-align: center;
+        font-size: 1.1rem;
+      }
+
+      .controls a {
+        display: table-cell;
+        text-decoration: none;
+        padding: 5px 0;
+        width: 33%;
+        border: 2px solid #ddd;
+        border-width: 2px 2px 2px 0;
+      }
+
+      .controls a:first-child {
+        border-left: 2px solid #ddd;
+        border-radius: 5px 0 0 5px;
+      }
+      .controls a:last-child {
+        border-radius: 0 5px 5px 0;
+      }
+
+      .controls a:hover,
+      .controls a.active {
+        color: #fff;
+      }
+
+      .controls a.positive:hover,
+      .controls a.positive.active {
+        background-color: green;
+        border-color: green;
+      }
+      .controls a.neutral:hover,
+      .controls a.neutral.active {
+        background-color: #888;
+        border-color: #888;
+      }
+      .controls a.negative:hover,
+      .controls a.negative.active {
+        background-color: red;
+        border-color: red;
+      }
+
+      article {
+        flex-basis: 33%;
+        max-width: 33%;
+        padding: 0 1rem;
+        margin-bottom: 2rem;
+      }
+
+      h1, h2, h3 {
+        font-weight: 600;
+      }
+
+      h1 {
+        font-weight: 300;
+      }
+
+      h1 small {
+        font-weight: 600;
+        font-size: 60%;
+      }
+
+      dt {
+        font-weight: 600;
+      }
+
+      dd {
+        margin: 0;
+        margin-bottom: 1rem;
+      }
+
+      .further-reading a {
+        display: inline-block;
+        max-width: 90%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      @media (max-width: 1325px) {
+        article {
+          flex-basis: 50%;
+          max-width: 50%;
+        }
+      }
+
+      @media (max-width: 890px) {
+        article {
+          flex-basis: 100%;
+          max-width: none;
+          padding: 0;
+        }
+      }
+    </style>
   </head>
   <body>
 
     <header role="banner">
-      <h1>Applications</h1>
+      <h1>{{this.length}} applicants <small>for Diversify 2014</small></h1>
+
+      <div id="counter"><span id="yes" title="Ja!">0</span><span title="Kanske ..." id="maybe">0</span><span title="Nej" id="no">0</span>
+      </div>
     </header>
 
     <main role="main">
       {{#each this}}
-      <article>
+      <article data-key="{{email}}">
         <h2>{{name}}</h2>
+        <div class="controls">
+          <a href="#" class="vote positive" data-choice="yes">Ja</a><a href="#" class="vote neutral" data-choice="maybe">Kanske</a><a href="#" class="vote negative" data-choice="no">Nej</a>
+        </div>
         <p class="meta">
           {{createdAt}} | <a href="mailto:{{email}}">{{email}}</a>
            | {{phone}}
-          {{#if twitter}} | <a href="http://twitter.com/{{twitter}}">@{{twitter}}</a>{{/if}}
+          {{#if twitter}} | {{twitterLink twitter }}{{/if}}
           {{#if github}} | <a href="http://github.com/{{github}}">{{github}}</a>{{/if}}
         </p>
 
@@ -25,7 +284,7 @@
           <dt>Gender</dt>
           <dd>{{gender}}</dd>
           <dt>Further reading</dt>
-          <dd>{{link}}</dd>
+          <dd class="further-reading">{{linkify link}}</dd>
           <dt>Contributions</dt>
           <dd>{{skills}}</dd>
           <dt>School</dt>

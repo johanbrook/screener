@@ -2,7 +2,29 @@ var Handlebars = require('handlebars'),
     fs =         require('fs'),
     path =       require('path'),
     csv =        require('csv-parser'),
-    _ =          require('highland')
+    _ =          require('highland'),
+    linkify =    require('html-linkify')
+
+Handlebars.registerHelper('twitterLink', function(input) {
+  input = Handlebars.Utils.escapeExpression(input)
+
+  var buildLink = function(username) {
+    return new Handlebars.SafeString('<a href="http://twitter.com/'+username+'">@'+username+'</a>')
+  }
+
+  var username = input.match(/^https?:\/\/twitter\.com\/(\w+)/)
+  if(username && username[1]) {
+    return buildLink(username[1])
+  }
+  else if(input.indexOf('@') === 0) {
+    return buildLink(input.slice(1))
+  }
+  return buildLink(input)
+})
+
+Handlebars.registerHelper('linkify', function(input) {
+  return new Handlebars.SafeString(linkify(input))
+})
 
 var log = function(msg) {
   return function(arg) {
@@ -57,4 +79,6 @@ module.exports = function(input, templatePath) {
   jsonStream.map(template)
     .pipe(fs.createWriteStream(output))
     .on('finish', log('Wrote to ' + output))
+
+  return jsonStream
 }
