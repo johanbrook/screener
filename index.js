@@ -22,6 +22,12 @@ Handlebars.registerHelper('twitterLink', function(input) {
   return buildLink(input)
 })
 
+Handlebars.registerHelper('findGender', function(input) {
+  input = input.toLowerCase()
+  if(input.indexOf('female') !== -1 || input.indexOf('woman') !== -1 || input.indexOf('gurl') !== -1) return 'female'
+  if(input.indexOf('male') !== -1 || input.indexOf('man') !== -1) return 'male'
+})
+
 Handlebars.registerHelper('linkify', function(input) {
   return new Handlebars.SafeString(linkify(input))
 })

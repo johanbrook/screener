@@ -11,11 +11,12 @@
         if(!opts) throw new Error('Please provide options')
 
         var Status = { YES: 'yes', MAYBE: 'maybe', NO: 'no' }
+        var Gender = { MALE: 'male', FEMALE: 'female' }
 
         // Backing store
         var docs = []
 
-        var countAll = function() {
+        var countStatus = function() {
           return docs.reduce(function(res, doc) {
             res.yes += doc.status === Status.YES ? 1 : 0
             res.maybe += doc.status === Status.MAYBE ? 1 : 0
@@ -25,11 +26,24 @@
           }, { yes: 0, maybe: 0, no: 0 })
         }
 
+        var countGenders = function() {
+          return docs.reduce(function(res, doc) {
+            res.male += doc.gender === Gender.MALE && doc.status === Status.YES ? 1 : 0
+            res.female += doc.gender === Gender.FEMALE && doc.status === Status.YES ? 1 : 0
+
+            return res
+          }, { male: 0, female: 0 })
+        }
+
         var recalculate = function() {
-          var counts = countAll()
+          var counts = countStatus(),
+              genders = countGenders()
 
           Object.keys(opts.elements).forEach(function(key) {
             opts.elements[key].innerHTML = counts[key]
+          })
+          Object.keys(opts.balance).forEach(function(key) {
+            opts.balance[key].innerHTML = genders[key]
           })
         }
 
@@ -42,18 +56,18 @@
           return false
         }
 
-        var add = function(key, status) {
-          docs.push({ key: key, status: status || Status.YES })
-          return { key: key, status: status }
+        var add = function(opts) {
+          docs.push(opts)
+          return opts
         }
 
-        var update = function(key, status) {
-          console.log("Updating "+key+" with '" + status + "'")
-          var doc = find(key)
+        var update = function(opts) {
+          console.log("Updating "+opts.key+" with '" + opts.status + "'")
+          var doc = find(opts.key)
           if(!doc) {
-            doc = add(key, status)
+            doc = add(opts)
           }
-          doc.status = status
+          doc.status = opts.status
           recalculate()
 
           return doc
@@ -71,6 +85,10 @@
             yes: document.getElementById('yes'),
             maybe: document.getElementById('maybe'),
             no: document.getElementById('no')
+          },
+          balance: {
+            male: document.getElementById('men'),
+            female: document.getElementById('women')
           }
         })
 
@@ -78,9 +96,10 @@
           evt.preventDefault()
           var article = evt.target.parentNode.parentNode,
               key = article.getAttribute('data-key'),
-              status = evt.target.getAttribute('data-choice')
+              status = evt.target.getAttribute('data-choice'),
+              gender = article.getAttribute('data-gender')
 
-          key && people.update(key, status);
+          key && people.update({key: key, gender: gender, status: status });
 
           [].slice.call(evt.target.parentNode.children).forEach(function(nod) {
             nod.classList.remove('active') // Clear old
@@ -137,7 +156,7 @@
         color: #666;
       }
 
-      #counter {
+      .counter {
         border: 2px solid #ddd;
         border-radius: 5px;
         font-weight: 600;
@@ -145,16 +164,16 @@
         background-color: #fff;
       }
 
-      #counter #yes { color: green; }
-      #counter #maybe { color: orange; }
-      #counter #no { color: red; }
+      .counter #yes { color: green; }
+      .counter #maybe { color: orange; }
+      .counter #no { color: red; }
 
-      #counter span {
+      .counter span {
         display: inline-block;
         padding: 3px .7em;
         text-align: center;
       }
-      #counter span:not(:last-child) {
+      .counter span:not(:last-child) {
         border-right: 2px solid #ddd;
       }
 
@@ -262,13 +281,17 @@
     <header role="banner">
       <h1>{{this.length}} applicants <small>for Diversify 2014</small></h1>
 
-      <div id="counter"><span id="yes" title="Ja!">0</span><span title="Kanske ..." id="maybe">0</span><span title="Nej" id="no">0</span>
+      <div class="counter balance">
+        <span>Men: <strong id="men">0</strong></span><span>Women: <strong id="women">0</strong></span>
+      </div>
+
+      <div class="counter"><span id="yes" title="Ja!">0</span><span title="Kanske ..." id="maybe">0</span><span title="Nej" id="no">0</span>
       </div>
     </header>
 
     <main role="main">
       {{#each this}}
-      <article data-key="{{email}}">
+      <article data-key="{{email}}" data-gender="{{findGender gender}}">
         <h2>{{name}}</h2>
         <div class="controls">
           <a href="#" class="vote positive" data-choice="yes">Ja</a><a href="#" class="vote neutral" data-choice="maybe">Kanske</a><a href="#" class="vote negative" data-choice="no">Nej</a>
