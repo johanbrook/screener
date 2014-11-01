@@ -21,6 +21,12 @@ var screener = require('../index')
 screener('somefile.csv', './template.html')
 ```
 
+From the `gulpfile.js`:
+
+```bash
+gulp template
+```
+
 # License
 
 MIT.
